@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Criar Conta — DevTech</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
+</head>
+<body>
+    <div class="card-login">
+        <h1>DevTech Tecnologias</h1>
+        <h2>Crie sua conta</h2>
+
+        <label for="nome">Digite seu nome:</label>
+        <input type="text" id="nome" name="nome" placeholder="nome completo" required>
+
+        <label for="email">Digite seu Email:</label>
+        <input type="email" id="email" name="email" placeholder="e-mail" required>
+
+        <label for="senha">Crie uma senha:</label>
+        <div class="campo-senha">
+            <input type="password" id="senha" name="senha" placeholder="mínimo 6 caracteres" required>
+            <button type="button" onclick="verSenha('senha', 'btn-olho-1')" id="btn-olho-1">👁️</button>
+        </div>
+
+        <label for="confirmar-senha">Confirme sua senha:</label>
+        <div class="campo-senha">
+            <input type="password" id="confirmar-senha" name="confirmar-senha" placeholder="repita a senha" required>
+            <button type="button" onclick="verSenha('confirmar-senha', 'btn-olho-2')" id="btn-olho-2">👁️</button>
+        </div>
+
+        <button type="button" onclick="cadastrar()">Criar conta</button>
+
+        <p style="text-align: center; margin-top: 16px; font-size: 14px; color: #6b7fa3;">
+            Já tem uma conta? <a href="index.html" style="color: #4f8ef7; font-weight: 600; text-decoration: none;">Fazer login</a>
+        </p>
+    </div>
+
+    <script>
+        function cadastrar() {
+            const nome = document.getElementById("nome").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const senha = document.getElementById("senha").value;
+            const confirmarSenha = document.getElementById("confirmar-senha").value;
+
+            if (nome === "" || email === "" || senha === "" || confirmarSenha === "") {
+                alert("Preencha todos os campos!");
+                return;
+            }
+
+            if (senha !== confirmarSenha) {
+                alert("As senhas não coincidem!");
+                return;
+            }
+
+            if (senha.length < 6) {
+                alert("A senha precisa ter pelo menos 6 caracteres!");
+                return;
+            }
+
+            const btn = document.querySelector('button[onclick="cadastrar()"]');
+            btn.disabled = true;
+            btn.textContent = "Criando conta...";
+
+            auth.createUserWithEmailAndPassword(email, senha)
+                .then((credencial) => {
+                    return credencial.user.updateProfile({ displayName: nome });
+                })
+                .then(() => {
+                    alert("Cadastro realizado com sucesso! Agora faça login.");
+                    window.location.href = "index.html";
+                })
+                .catch((error) => {
+                    if (error.code === "auth/email-already-in-use") {
+                        alert("Este e-mail já está cadastrado!");
+                    } else if (error.code === "auth/invalid-email") {
+                        alert("Digite um e-mail válido!");
+                    } else if (error.code === "auth/weak-password") {
+                        alert("A senha é muito fraca, escolha outra!");
+                    } else {
+                        alert("Erro ao cadastrar: " + error.message);
+                    }
+                    btn.disabled = false;
+                    btn.textContent = "Criar conta";
+                });
+        }
+
+        function verSenha(inputId, btnId) {
+            const input = document.getElementById(inputId);
+            const btn = document.getElementById(btnId);
+
+            if (input.type === "password") {
+                input.type = "text";
+                btn.textContent = "🙈";
+            } else {
+                input.type = "password";
+                btn.textContent = "👁️";
+            }
+        }
+    </script>
+</body>
+</html>

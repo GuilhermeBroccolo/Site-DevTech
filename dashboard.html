@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard — DevTech Tecnologias</title>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
     <style>
         * {
             margin: 0;
@@ -13,7 +17,7 @@
         }
  
         body {
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Roboto', sans-serif;
             background-color: #06163a;
             background-image:
                 radial-gradient(ellipse at top left, #2c61a7 0%, #06163a 60%),
@@ -50,14 +54,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: 'Syne', sans-serif;
+            font-family: 'Space Grotesk', sans-serif;
             font-weight: 800;
             font-size: 18px;
             color: white;
         }
  
         .logo-text {
-            font-family: 'Syne', sans-serif;
+            font-family: 'Space Grotesk', sans-serif;
             font-weight: 700;
             font-size: 18px;
             color: white;
@@ -90,7 +94,7 @@
             border-radius: 8px;
             font-size: 13px;
             cursor: pointer;
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Roboto', sans-serif;
             transition: all 0.2s;
         }
  
@@ -122,7 +126,7 @@
         }
  
         .hero h1 {
-            font-family: Bahnschrift;
+            font-family: 'Space Grotesk', sans-serif;
             font-size: 52px;
             font-weight: 800;
             line-height: 1.1;
@@ -175,7 +179,7 @@
         }
  
         .stat-number {
-            font-family: 'Syne', sans-serif;
+            font-family: 'Space Grotesk', sans-serif;
             font-size: 32px;
             font-weight: 700;
             color: white;
@@ -220,7 +224,7 @@
         }
  
         .card h2 {
-            font-family: 'Syne', sans-serif;
+            font-family: 'Space Grotesk', sans-serif;
             font-size: 22px;
             font-weight: 700;
             color: white;
@@ -268,7 +272,7 @@
         }
  
         .servicos h2 {
-            font-family: 'Syne', sans-serif;
+            font-family: 'Space Grotesk', sans-serif;
             font-size: 24px;
             font-weight: 700;
             color: white;
@@ -301,7 +305,7 @@
         }
  
         .servico-card h3 {
-            font-family: 'Syne', sans-serif;
+            font-family: 'Space Grotesk', sans-serif;
             font-size: 16px;
             font-weight: 600;
             color: white;
@@ -346,9 +350,10 @@
             <span class="logo-text">Dev<span>Tech</span></span>
         </div>
         <div class="nav-right">
+            <span class="nav-badge" id="nav-usuario-badge"> Carregando...</span>
             <button class="btn-sair" onclick="window.location.href='serviços.html'">Serviços</button>
             <button class="btn-sair" onclick="window.location.href='pacote.html'">Assinaturas</button> 
-            <button class="btn-sair" onclick="window.location.href='index.html'">Sair</button>
+            <button class="btn-sair" onclick="sair()">Sair</button>
         </div>
     </nav>
  
@@ -447,7 +452,36 @@
 
         <p class="footer-direitos"></p>© 2025 DevTech Tecnologias — Todos os direitos reservados
     </footer>
- 
+
+    <script>
+        // Só deixa ver o dashboard quem estiver logado de verdade
+        const EMAIL_ADMIN = 'monteiro.201006@gmail.com';
+
+        auth.onAuthStateChanged((usuario) => {
+            if (!usuario) {
+                window.location.href = "index.html";
+            } else {
+                const badge = document.getElementById('nav-usuario-badge');
+                const nomeOuEmail = usuario.displayName || usuario.email;
+                badge.textContent = nomeOuEmail;
+
+                if (usuario.email === EMAIL_ADMIN) {
+                    const btnAdmin = document.createElement('button');
+                    btnAdmin.className = 'btn-sair';
+                    btnAdmin.textContent = 'Painel Admin';
+                    btnAdmin.onclick = () => window.location.href = 'admin.html';
+                    document.querySelector('.nav-right').insertBefore(btnAdmin, document.querySelector('.btn-sair'));
+                }
+            }
+        });
+
+        function sair() {
+            auth.signOut().then(() => {
+                window.location.href = "index.html";
+            });
+        }
+    </script>
+
 </body>
 </html>
  

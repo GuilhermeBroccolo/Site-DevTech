@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin — DevTech Tecnologias</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #06163a;
+            background-image:
+                radial-gradient(ellipse at top left, #2c61a7 0%, #06163a 60%),
+                radial-gradient(ellipse at bottom right, #8356d1 0%, transparent 80%);
+            min-height: 100vh; color: #e8eaf6;
+        }
+        nav {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 20px 48px; background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.08);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, #4f8ef7, #8356d1); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk', sans-serif; font-weight: 800; font-size: 18px; color: white; }
+        .logo-text { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 18px; color: white; }
+        .logo-text span { color: #4f8ef7; }
+        .btn-sair { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15); color: #ccc; padding: 8px 18px; border-radius: 8px; font-size: 13px; cursor: pointer; font-family: 'Roboto', sans-serif; transition: all 0.2s; }
+        .btn-sair:hover { background: rgba(255,255,255,0.12); color: white; }
+
+        .page { max-width: 1000px; margin: 0 auto; padding: 48px 48px 80px; }
+        .hero-tag { display: inline-block; background: rgba(79,142,247,0.12); border: 1px solid rgba(79,142,247,0.25); color: #7eb3ff; font-size: 12px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; padding: 6px 14px; border-radius: 20px; margin-bottom: 16px; }
+        .page h1 { font-family: 'Space Grotesk', sans-serif; font-size: 32px; font-weight: 800; color: white; margin-bottom: 8px; }
+        .page > p { color: #8a9bbf; margin-bottom: 32px; }
+
+        .resumo { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
+        .resumo-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px; }
+        .resumo-numero { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 800; color: white; }
+        .resumo-label { font-size: 13px; color: #6b7fa3; margin-top: 4px; }
+
+        .lista-assinaturas { display: flex; flex-direction: column; gap: 14px; }
+
+        .assinatura-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px; padding: 22px;
+        }
+        .assinatura-topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+        .assinatura-cliente { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 700; color: white; }
+        .assinatura-email { font-size: 13px; color: #6b7fa3; margin-top: 2px; }
+        .assinatura-data { font-size: 12px; color: #4f6494; text-align: right; }
+        .assinatura-total { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 800; color: #7eb3ff; }
+        .badge-periodo { display: inline-block; background: rgba(79,142,247,0.15); border: 1px solid rgba(79,142,247,0.3); color: #7eb3ff; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; margin-top: 6px; }
+
+        .servicos-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06); }
+        .servico-tag { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #9aa5c4; font-size: 12px; padding: 4px 12px; border-radius: 20px; }
+
+        .vazio, .carregando, .sem-acesso { text-align: center; padding: 60px 20px; color: #6b7fa3; }
+        .vazio span, .carregando span, .sem-acesso span { display: block; font-size: 40px; margin-bottom: 12px; }
+
+        @media (max-width: 700px) {
+            nav { padding: 16px 20px; }
+            .page { padding: 32px 20px 60px; }
+        }
+    </style>
+</head>
+<body>
+<nav>
+    <a class="logo" href="dashboard.html">
+        <div class="logo-icon">DT</div>
+        <span class="logo-text">Dev<span>Tech</span></span>
+    </a>
+    <button class="btn-sair" onclick="window.location.href='dashboard.html'">← Voltar ao início</button>
+</nav>
+
+<div class="page">
+    <div class="hero-tag">Área restrita</div>
+    <h1>Painel de Assinaturas</h1>
+    <p>Acompanhe aqui todos os pedidos de assinatura feitos pelos clientes.</p>
+
+    <div class="resumo" id="resumo"></div>
+
+    <div class="lista-assinaturas" id="lista-assinaturas">
+        <div class="carregando"><span>⏳</span>Carregando assinaturas...</div>
+    </div>
+</div>
+
+<script>
+    // ⚠️ Só este e-mail consegue ver o painel. As regras do Firestore também
+    // já bloqueiam qualquer outro usuário de ler os dados, então é seguro.
+    const EMAIL_ADMIN = 'monteiro.201006@gmail.com';
+
+    auth.onAuthStateChanged((usuario) => {
+        if (!usuario) {
+            window.location.href = "index.html";
+            return;
+        }
+
+        if (usuario.email !== EMAIL_ADMIN) {
+            document.querySelector('.page').innerHTML = `
+                <div class="sem-acesso">
+                    <span>🔒</span>
+                    Você não tem permissão para ver esta página.
+                </div>
+            `;
+            return;
+        }
+
+        carregarAssinaturas();
+    });
+
+    function fmt(valor) {
+        return 'R$ ' + valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+    }
+
+    function carregarAssinaturas() {
+        db.collection('assinaturas').orderBy('criadoEm', 'desc').get()
+            .then((snapshot) => {
+                const listaEl = document.getElementById('lista-assinaturas');
+                const resumoEl = document.getElementById('resumo');
+
+                if (snapshot.empty) {
+                    listaEl.innerHTML = `
+                        <div class="vazio">
+                            <span>📭</span>
+                            Nenhuma assinatura foi feita ainda.
+                        </div>
+                    `;
+                    return;
+                }
+
+                let totalMensal = 0, totalAnual = 0, contMensal = 0, contAnual = 0;
+                let html = '';
+
+                snapshot.forEach((doc) => {
+                    const a = doc.data();
+                    const data = a.criadoEm ? a.criadoEm.toDate().toLocaleString('pt-BR') : '—';
+                    const nome = a.nomeCliente || 'Sem nome';
+                    const email = a.emailCliente || 'Sem e-mail';
+                    const periodoTexto = a.periodo === 'anual' ? 'Anual' : 'Mensal';
+
+                    if (a.periodo === 'anual') { totalAnual += a.total; contAnual++; }
+                    else { totalMensal += a.total; contMensal++; }
+
+                    const tags = (a.servicos || []).map(s => `<span class="servico-tag">${s.nome}</span>`).join('');
+
+                    html += `
+                        <div class="assinatura-card">
+                            <div class="assinatura-topo">
+                                <div>
+                                    <div class="assinatura-cliente">${nome}</div>
+                                    <div class="assinatura-email">${email}</div>
+                                    <span class="badge-periodo">${periodoTexto}</span>
+                                </div>
+                                <div>
+                                    <div class="assinatura-total">${fmt(a.total)}</div>
+                                    <div class="assinatura-data">${data}</div>
+                                </div>
+                            </div>
+                            <div class="servicos-tags">${tags}</div>
+                        </div>
+                    `;
+                });
+
+                listaEl.innerHTML = html;
+
+                resumoEl.innerHTML = `
+                    <div class="resumo-card">
+                        <div class="resumo-numero">${snapshot.size}</div>
+                        <div class="resumo-label">Total de pedidos</div>
+                    </div>
+                    <div class="resumo-card">
+                        <div class="resumo-numero">${contMensal}</div>
+                        <div class="resumo-label">Planos mensais</div>
+                    </div>
+                    <div class="resumo-card">
+                        <div class="resumo-numero">${contAnual}</div>
+                        <div class="resumo-label">Planos anuais</div>
+                    </div>
+                `;
+            })
+            .catch((erro) => {
+                console.error('Erro ao carregar assinaturas:', erro);
+                document.getElementById('lista-assinaturas').innerHTML = `
+                    <div class="sem-acesso">
+                        <span>⚠️</span>
+                        Não foi possível carregar as assinaturas. Veja o console (F12) para detalhes.
+                    </div>
+                `;
+            });
+    }
+</script>
+</body>
+</html>

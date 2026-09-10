@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <title>Web Site Login DevTech</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
 </head>
 <body>
     <div class="card-login">
@@ -20,6 +24,9 @@
         </div>
 
         <button type="button" onclick="entrar()">Entrar</button>
+        <p style="text-align: center; margin-top: 16px; font-size: 14px; color: #6b7fa3;">
+            Ainda não tem conta? <a href="cadastro.html" style="color: #4f8ef7; font-weight: 600; text-decoration: none;">Cadastre-se</a>
+        </p>
     </div>
 
     <script>
@@ -32,11 +39,23 @@
                 return;
             }
 
-            if (email !== "monteiro@gmail.com.br" || senha !== "admin123"){
-                alert("Email ou senha incorretos!");
-                return;               
-            }
-            window.location.href = "dashboard.html"; 
+            const btn = document.querySelector('button[onclick="entrar()"]');
+            btn.disabled = true;
+            btn.textContent = "Entrando...";
+
+            auth.signInWithEmailAndPassword(email, senha)
+                .then(() => {
+                    window.location.href = "dashboard.html";
+                })
+                .catch((error) => {
+                    if (error.code === "auth/invalid-credential" || error.code === "auth/wrong-password" || error.code === "auth/user-not-found") {
+                        alert("Email ou senha incorretos!");
+                    } else {
+                        alert("Erro ao entrar: " + error.message);
+                    }
+                    btn.disabled = false;
+                    btn.textContent = "Entrar";
+                });
         }
 
         function verSenha() {
