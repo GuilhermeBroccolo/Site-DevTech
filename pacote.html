@@ -558,17 +558,17 @@
         const total = ids.reduce((acc, id) => acc + (anual ? selecionados[id].anual : selecionados[id].mensal), 0);
         const sufixo = anual ? '/ano' : '/mês';
 
-        let mensagem = 'Olá! Quero assinar o seguinte pacote na DevTech:%0A%0A';
+        let mensagem = 'Olá! Quero assinar o seguinte pacote na DevTech:\n\n';
         ids.forEach(id => {
             const s = selecionados[id];
             const preco = anual ? s.anual : s.mensal;
-            mensagem += `• ${s.nome} - ${fmt(preco)}${sufixo}%0A`;
+            mensagem += `• ${s.nome} - ${fmt(preco)}${sufixo}\n`;
         });
-        mensagem += `%0A*Total: ${fmt(total)}${sufixo}*`;
+        mensagem += `\n*Total: ${fmt(total)}${sufixo}*`;
 
         // Número de WhatsApp da DevTech
         const numeroWhatsApp = '5519999521904';
-        const link = `https://wa.me/${numeroWhatsApp}?text=${mensagem}`;
+        const link = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
 
         // Monta os dados da assinatura para salvar no banco
         const servicosEscolhidos = ids.map(id => ({
